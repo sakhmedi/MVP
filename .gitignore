@@ -1,0 +1,33 @@
+# Environment variables
+.env
+*.env
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Go specific
+*.test
+*.out
+vendor/

@@ -2,6 +2,8 @@ package main
 
 import (
 	"gin-quickstart/config"
+	"gin-quickstart/handlers"
+	"gin-quickstart/middleware"
 	"gin-quickstart/models"
 	"log"
 
@@ -13,7 +15,7 @@ func main() {
 	config.ConnectDatabase()
 
 	// Auto-migrate database models
-	err := config.DB.AutoMigrate(&models.User{}, &models.Post{})
+	err := config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.RefreshToken{}, &models.BlacklistedToken{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -34,18 +36,48 @@ func main() {
 		c.Next()
 	})
 
-	// Test routes
+	// Health check routes
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "hi",
+			"message": "pong",
 		})
 	})
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "my 1st endpoint",
+			"message": "Blog API v1.0",
 		})
 	})
+
+	// API route group
+	api := router.Group("/api")
+	{
+		// Public authentication routes (no middleware)
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", handlers.Register)
+			auth.POST("/login", handlers.Login)
+			auth.POST("/refresh", handlers.RefreshTokenHandler)
+			auth.POST("/logout", handlers.Logout)
+		}
+
+		// Public post routes (read-only)
+		api.GET("/posts", handlers.GetPosts)
+		api.GET("/posts/:slug", handlers.GetPost)
+
+		// Protected routes (require JWT authentication)
+		protected := api.Group("/")
+		protected.Use(middleware.AuthMiddleware())
+		{
+			protected.GET("/user/me", handlers.GetCurrentUser)
+
+			// Post management routes
+			protected.POST("/posts", handlers.CreatePost)
+			protected.PUT("/posts/:id", handlers.UpdatePost)
+			protected.DELETE("/posts/:id", handlers.DeletePost)
+			protected.GET("/posts/my", handlers.GetMyPosts)
+		}
+	}
 
 	// Start server
 	log.Println("Server starting on :8080")

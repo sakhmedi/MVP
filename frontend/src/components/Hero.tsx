@@ -1,8 +1,10 @@
 import { useState } from "react"
 import SignupModal from "./SignupModal"
+import LoginModal from "./LoginModal"
 
 const Hero = () => {
-    const [isOpen, setIsOpen] = useState(false)
+    const [showSignupModal, setShowSignupModal] = useState(false)
+    const [showLoginModal, setShowLoginModal] = useState(false)
 
     return (
         <>
@@ -19,7 +21,7 @@ const Hero = () => {
                     </p>
 
                     <button
-                        onClick={() => setIsOpen(true)}
+                        onClick={() => setShowSignupModal(true)}
                         className="mt-8 text-[20px] rounded-full bg-black px-6 py-3 text-white text-sm hover:bg-gray-800"
                     >
                         Start reading
@@ -27,7 +29,25 @@ const Hero = () => {
                 </div>
             </section>
 
-            {isOpen && <SignupModal onClose={() => setIsOpen(false)} />}
+            {showSignupModal && (
+                <SignupModal
+                    onClose={() => setShowSignupModal(false)}
+                    onSwitchToLogin={() => {
+                        setShowSignupModal(false)
+                        setShowLoginModal(true)
+                    }}
+                />
+            )}
+
+            {showLoginModal && (
+                <LoginModal
+                    onClose={() => setShowLoginModal(false)}
+                    onSwitchToSignup={() => {
+                        setShowLoginModal(false)
+                        setShowSignupModal(true)
+                    }}
+                />
+            )}
         </>
     )
 }

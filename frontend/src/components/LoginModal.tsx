@@ -1,21 +1,20 @@
 import { useState } from 'react';
-import type { RegisterData } from '../types/user';
+import type { LoginData } from '../types/user';
 import { authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 type Props = {
     onClose: () => void;
-    onSwitchToLogin: () => void;
+    onSwitchToSignup: () => void;
 }
 
-const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
-    const [formData, setFormData] = useState<RegisterData>({
+const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
+    const { login } = useAuth();
+    const [formData, setFormData] = useState<LoginData>({
         email: '',
         password: '',
-        username: '',
-        full_name: '',
     });
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,27 +28,14 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
         setLoading(true);
 
         try {
-            const response = await authAPI.register(formData);
-            setSuccess(response.message || 'Registration successful! Please login to continue.');
-
-            // Clear form
-            setFormData({
-                email: '',
-                password: '',
-                username: '',
-                full_name: '',
-            });
-
-            // Auto-switch to login after 2 seconds
-            setTimeout(() => {
-                onSwitchToLogin();
-            }, 2000);
+            const response = await authAPI.login(formData);
+            login(response.access_token, response.refresh_token, response.user);
+            onClose();
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Registration failed. Please try again.');
+            setError(err.response?.data?.error || 'Login failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -57,7 +43,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
 
                 {/* Close button */}
                 <button
@@ -68,7 +54,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
                 </button>
 
                 <h2 className="text-2xl font-semibold mb-6">
-                    Join Blog
+                    Welcome back
                 </h2>
 
                 {error && (
@@ -77,16 +63,10 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
                     </div>
                 )}
 
-                {success && (
-                    <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm">
-                        {success}
-                    </div>
-                )}
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">
-                            Email *
+                            Email
                         </label>
                         <input
                             type="email"
@@ -101,22 +81,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
 
                     <div>
                         <label className="block text-sm font-medium mb-1">
-                            Username *
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-                            placeholder="johndoe"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Password *
+                            Password
                         </label>
                         <input
                             type="password"
@@ -124,23 +89,8 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
                             value={formData.password}
                             onChange={handleChange}
                             required
-                            minLength={8}
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-                            placeholder="Min 8 chars, uppercase, lowercase, number"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Full Name (Optional)
-                        </label>
-                        <input
-                            type="text"
-                            name="full_name"
-                            value={formData.full_name}
-                            onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-                            placeholder="John Doe"
+                            placeholder="Enter your password"
                         />
                     </div>
 
@@ -149,27 +99,22 @@ const SignupModal = ({ onClose, onSwitchToLogin }: Props) => {
                         disabled={loading}
                         className="w-full bg-black text-white rounded-full py-2 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                        {loading ? 'Creating account...' : 'Sign up'}
+                        {loading ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
 
                 <p className="mt-4 text-sm text-gray-600">
-                    Already have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <button
-                        onClick={onSwitchToLogin}
+                        onClick={onSwitchToSignup}
                         className="text-black cursor-pointer underline hover:no-underline"
                     >
-                        Sign in
+                        Sign up
                     </button>
-                </p>
-
-                <p className="mt-6 text-xs text-gray-500">
-                    By clicking &quot;Sign up&quot;, you accept Blog&apos;s Terms of Service
-                    and Privacy Policy.
                 </p>
             </div>
         </div>
     )
 }
 
-export default SignupModal
+export default LoginModal

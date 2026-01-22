@@ -47,12 +47,12 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-[#12121a] border border-[#24243a] rounded-2xl w-full max-w-md p-8 relative shadow-2xl shadow-black/50 animate-fade-in">
+            <div className="bg-[#211F36] border border-[#616083]/30 rounded-2xl w-full max-w-md p-8 relative shadow-2xl shadow-black/50 animate-fade-in">
 
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a24] transition-all"
+                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-[#616083] hover:text-gray-300 hover:bg-[#0C0E1D] transition-all"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -61,15 +61,15 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#5b3d8a] to-[#9d7dcf] flex items-center justify-center shadow-lg shadow-[#5b3d8a]/30">
-                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#FF81FF] to-[#51FAAA] flex items-center justify-center shadow-lg shadow-[#FF81FF]/30">
+                        <svg className="w-8 h-8 text-[#0C0E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
                     <h2 className="text-2xl font-bold text-white">
                         Welcome back
                     </h2>
-                    <p className="text-gray-400 mt-1">Sign in to continue to your feed</p>
+                    <p className="text-[#616083] mt-1">Sign in to continue to your feed</p>
                 </div>
 
                 {error && (
@@ -92,7 +92,7 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full bg-[#1a1a24] border border-[#24243a] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#5b3d8a] focus:border-transparent transition-all"
+                            className="w-full bg-[#0C0E1D] border border-[#616083]/30 rounded-xl px-4 py-3 text-white placeholder-[#616083] focus:outline-none focus:ring-2 focus:ring-[#FF81FF] focus:border-transparent transition-all"
                             placeholder="your@email.com"
                         />
                     </div>
@@ -107,7 +107,7 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
                             value={formData.password}
                             onChange={handleChange}
                             required
-                            className="w-full bg-[#1a1a24] border border-[#24243a] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#5b3d8a] focus:border-transparent transition-all"
+                            className="w-full bg-[#0C0E1D] border border-[#616083]/30 rounded-xl px-4 py-3 text-white placeholder-[#616083] focus:outline-none focus:ring-2 focus:ring-[#FF81FF] focus:border-transparent transition-all"
                             placeholder="Enter your password"
                         />
                     </div>
@@ -115,7 +115,7 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-[#5b3d8a] to-[#7c5aad] text-white rounded-xl py-3 font-medium hover:shadow-lg hover:shadow-[#5b3d8a]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="w-full bg-gradient-to-r from-[#FF81FF] to-[#51FAAA] text-[#0C0E1D] rounded-xl py-3 font-medium hover:shadow-lg hover:shadow-[#FF81FF]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         {loading ? (
                             <span className="flex items-center justify-center gap-2">
@@ -130,11 +130,11 @@ const LoginModal = ({ onClose, onSwitchToSignup }: Props) => {
                 </form>
 
                 <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[#616083]">
                         Don&apos;t have an account?{" "}
                         <button
                             onClick={onSwitchToSignup}
-                            className="text-[#9d7dcf] font-medium hover:text-[#b99fe0] transition-colors"
+                            className="text-[#FF81FF] font-medium hover:text-[#FF81FF]/80 transition-colors"
                         >
                             Sign up
                         </button>

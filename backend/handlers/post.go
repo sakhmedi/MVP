@@ -30,7 +30,7 @@ func CreatePost(c *gin.Context) {
 	}
 
 	// Get user ID from context (set by AuthMiddleware)
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -89,7 +89,7 @@ func UpdatePost(c *gin.Context) {
 	}
 
 	// Get user ID from context
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -179,7 +179,7 @@ func DeletePost(c *gin.Context) {
 	}
 
 	// Get user ID from context
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -252,7 +252,7 @@ func GetPosts(c *gin.Context) {
 
 // GetMyPosts retrieves all posts by the authenticated user
 func GetMyPosts(c *gin.Context) {
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return

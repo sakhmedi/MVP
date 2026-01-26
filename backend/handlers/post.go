@@ -220,6 +220,7 @@ func GetPost(c *gin.Context) {
 func GetPosts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	sort := c.DefaultQuery("sort", "latest")
 
 	if page < 1 {
 		page = 1
@@ -237,7 +238,16 @@ func GetPosts(c *gin.Context) {
 	query := config.DB.Where("published = ?", true).Preload("Author")
 
 	query.Model(&models.Post{}).Count(&total)
-	if err := query.Order("published_at DESC").Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
+
+	// Sort by views (trending) or by date (latest)
+	var orderBy string
+	if sort == "views" {
+		orderBy = "view_count DESC"
+	} else {
+		orderBy = "published_at DESC"
+	}
+
+	if err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
 		return
 	}
@@ -248,6 +258,52 @@ func GetPosts(c *gin.Context) {
 		"page":  page,
 		"limit": limit,
 	})
+}
+
+// GetStaffPicks returns top 3 most viewed posts for sidebar
+func GetStaffPicks(c *gin.Context) {
+	var posts []models.Post
+
+	if err := config.DB.Where("published = ?", true).
+		Preload("Author").
+		Order("view_count DESC").
+		Limit(3).
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch staff picks"})
+		return
+	}
+
+	// Return simplified post data
+	type StaffPick struct {
+		ID          uint   `json:"id"`
+		Title       string `json:"title"`
+		Slug        string `json:"slug"`
+		AuthorName  string `json:"author_name"`
+		AuthorUsername string `json:"author_username"`
+		PublishedAt string `json:"published_at"`
+	}
+
+	var picks []StaffPick
+	for _, p := range posts {
+		authorName := p.Author.FullName
+		if authorName == "" {
+			authorName = p.Author.Username
+		}
+		publishedAt := ""
+		if p.PublishedAt != nil {
+			publishedAt = p.PublishedAt.Format("Jan 2")
+		}
+		picks = append(picks, StaffPick{
+			ID:          p.ID,
+			Title:       p.Title,
+			Slug:        p.Slug,
+			AuthorName:  authorName,
+			AuthorUsername: p.Author.Username,
+			PublishedAt: publishedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"picks": picks})
 }
 
 // GetMyPosts retrieves all posts by the authenticated user

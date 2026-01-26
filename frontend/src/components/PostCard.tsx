@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Post } from '../types/post';
+import { bookmarkAPI } from '../services/api';
 
 interface PostCardProps {
   post: Post;
@@ -9,8 +10,25 @@ interface PostCardProps {
 
 const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 200) + 10);
+  const [likeCount, setLikeCount] = useState(0);
+
+  const isLoggedIn = !!localStorage.getItem('access_token');
+
+  // Check bookmark status on mount
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      if (!isLoggedIn || !post.id) return;
+      try {
+        const response = await bookmarkAPI.checkBookmark(post.id);
+        setIsBookmarked(response.bookmarked);
+      } catch (error) {
+        // Silently fail - user might not be logged in
+      }
+    };
+    checkBookmarkStatus();
+  }, [post.id, isLoggedIn]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -32,17 +50,38 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
   };
 
-  const handleBookmark = (e: React.MouseEvent) => {
+  const handleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
+
+    if (!isLoggedIn) {
+      // Could show a login prompt here
+      return;
+    }
+
+    if (isBookmarkLoading) return;
+
+    setIsBookmarkLoading(true);
+    try {
+      if (isBookmarked) {
+        await bookmarkAPI.removeBookmark(post.id);
+        setIsBookmarked(false);
+      } else {
+        await bookmarkAPI.addBookmark(post.id);
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error('Failed to update bookmark:', error);
+    } finally {
+      setIsBookmarkLoading(false);
+    }
   };
 
   // Featured variant - large hero card
   if (variant === 'featured') {
     return (
       <article className="group relative overflow-hidden rounded-2xl bg-white border border-[#E8E2D9] transition-all duration-500 hover:shadow-xl hover:shadow-[#3D405B]/10 hover:-translate-y-1">
-        <Link to={`/post/${post.slug}`} className="block">
+        <Link to={`/posts/${post.slug}`} className="block">
           {/* Background image with overlay */}
           <div className="absolute inset-0">
             {post.cover_image ? (
@@ -92,9 +131,17 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
                   </span>
                 </div>
                 <div>
-                  <p className="font-medium text-white">
-                    {post.author?.full_name || post.author?.username || 'Anonymous'}
-                  </p>
+                  {post.author?.username ? (
+                    <Link
+                      to={`/user/${post.author.username}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-medium text-white hover:underline"
+                    >
+                      {post.author?.full_name || post.author?.username}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-white">Anonymous</span>
+                  )}
                   <p className="text-sm text-white/70">
                     {formatDate(post.published_at || post.created_at)} · {getReadTime(post.read_time)}
                   </p>
@@ -121,7 +168,7 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
   if (variant === 'compact') {
     return (
       <article className="group relative overflow-hidden rounded-xl bg-white border border-[#E8E2D9] transition-all duration-300 hover:shadow-lg hover:shadow-[#3D405B]/10 hover:-translate-y-1 hover:border-[#E07A5F]/30">
-        <Link to={`/post/${post.slug}`} className="block">
+        <Link to={`/posts/${post.slug}`} className="block">
           {/* Image */}
           <div className="aspect-[16/10] overflow-hidden bg-[#FAF7F2]">
             {post.cover_image ? (
@@ -160,7 +207,17 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
                     {post.author?.username?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
-                <span className="text-[#6B7280]">{post.author?.username || 'Anonymous'}</span>
+{post.author?.username ? (
+                  <Link
+                    to={`/user/${post.author.username}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[#6B7280] hover:text-[#E07A5F] transition-colors"
+                  >
+                    {post.author.username}
+                  </Link>
+                ) : (
+                  <span className="text-[#6B7280]">Anonymous</span>
+                )}
               </div>
               <span className="text-[#6B7280]">{getReadTime(post.read_time)}</span>
             </div>
@@ -184,9 +241,16 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium text-[#3D405B] hover:text-[#E07A5F] cursor-pointer transition-colors">
-                {post.author?.full_name || post.author?.username || 'Anonymous'}
-              </span>
+              {post.author?.username ? (
+                <Link
+                  to={`/user/${post.author.username}`}
+                  className="font-medium text-[#3D405B] hover:text-[#E07A5F] transition-colors"
+                >
+                  {post.author?.full_name || post.author.username}
+                </Link>
+              ) : (
+                <span className="font-medium text-[#3D405B]">Anonymous</span>
+              )}
               <span className="text-[#9CA3AF]">·</span>
               <span className="text-[#6B7280]">
                 {formatDate(post.published_at || post.created_at)}
@@ -195,7 +259,7 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
           </div>
 
           {/* Title */}
-          <Link to={`/post/${post.slug}`}>
+          <Link to={`/posts/${post.slug}`}>
             <h2 className="mb-2 text-xl font-bold text-[#3D405B] transition-colors group-hover:text-[#E07A5F] line-clamp-2">
               {post.title}
             </h2>
@@ -254,11 +318,13 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
               {/* Bookmark button */}
               <button
                 onClick={handleBookmark}
+                disabled={isBookmarkLoading || !isLoggedIn}
                 className={`rounded-full p-2 transition-all duration-300 ${
                   isBookmarked
                     ? 'bg-[#81B29A]/10 text-[#81B29A]'
                     : 'text-[#6B7280] hover:bg-[#FAF7F2] hover:text-[#3D405B]'
-                }`}
+                } ${isBookmarkLoading ? 'opacity-50 cursor-wait' : ''} ${!isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={!isLoggedIn ? 'Login to bookmark' : isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
               >
                 <svg
                   className={`h-4 w-4 transition-transform duration-300 ${isBookmarked ? 'scale-110' : ''}`}
@@ -292,7 +358,7 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
 
         {/* Thumbnail */}
         {post.cover_image && (
-          <Link to={`/post/${post.slug}`} className="flex-shrink-0">
+          <Link to={`/posts/${post.slug}`} className="flex-shrink-0">
             <div className="h-32 w-32 md:h-36 md:w-48 overflow-hidden rounded-xl bg-[#FAF7F2] transition-all duration-300 group-hover:shadow-md group-hover:shadow-[#3D405B]/10">
               <img
                 src={post.cover_image}

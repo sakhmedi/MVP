@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { User, RegisterData, LoginData, AuthResponse } from '../types/user';
+import type { User, UserProfile, RegisterData, LoginData, AuthResponse } from '../types/user';
 import type { Post, CreatePostData, UpdatePostData } from '../types/post';
 
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -112,15 +112,81 @@ export const postAPI = {
     return response.data;
   },
 
-  getPosts: async (page = 1, limit = 10): Promise<{ posts: Post[]; total: number; page: number; limit: number }> => {
+  getPosts: async (page = 1, limit = 10, sort = 'latest'): Promise<{ posts: Post[]; total: number; page: number; limit: number }> => {
     const response = await api.get<{ posts: Post[]; total: number; page: number; limit: number }>('/posts', {
-      params: { page, limit },
+      params: { page, limit, sort },
     });
     return response.data;
   },
 
   getMyPosts: async (): Promise<{ posts: Post[] }> => {
     const response = await api.get<{ posts: Post[] }>('/posts/my');
+    return response.data;
+  },
+
+  getStaffPicks: async (): Promise<{ picks: Array<{ id: number; title: string; slug: string; author_name: string; author_username: string; published_at: string }> }> => {
+    const response = await api.get('/posts/staff-picks');
+    return response.data;
+  },
+
+  getFollowingFeed: async (page = 1, limit = 10): Promise<{ posts: Post[]; total: number; page: number; limit: number }> => {
+    const response = await api.get<{ posts: Post[]; total: number; page: number; limit: number }>('/feed/following', {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+};
+
+export const userAPI = {
+  getUserProfile: async (username: string): Promise<{ user: UserProfile }> => {
+    const response = await api.get<{ user: UserProfile }>(`/users/${username}`);
+    return response.data;
+  },
+
+  getUserPosts: async (username: string): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get<{ posts: Post[]; total: number }>(`/users/${username}/posts`);
+    return response.data;
+  },
+
+  followUser: async (username: string): Promise<{ message: string }> => {
+    const response = await api.post(`/users/${username}/follow`);
+    return response.data;
+  },
+
+  unfollowUser: async (username: string): Promise<{ message: string }> => {
+    const response = await api.delete(`/users/${username}/follow`);
+    return response.data;
+  },
+
+  checkFollowing: async (username: string): Promise<{ following: boolean }> => {
+    const response = await api.get(`/users/${username}/following-check`);
+    return response.data;
+  },
+
+  getSuggestedUsers: async (limit = 3): Promise<{ users: Array<{ id: number; username: string; full_name: string; bio: string; avatar: string; follower_count: number }> }> => {
+    const response = await api.get('/users/suggestions', { params: { limit } });
+    return response.data;
+  },
+};
+
+export const bookmarkAPI = {
+  addBookmark: async (postId: number): Promise<{ message: string }> => {
+    const response = await api.post(`/bookmarks/${postId}`);
+    return response.data;
+  },
+
+  removeBookmark: async (postId: number): Promise<{ message: string }> => {
+    const response = await api.delete(`/bookmarks/${postId}`);
+    return response.data;
+  },
+
+  getBookmarks: async (): Promise<{ bookmarks: Array<{ id: number; post: Post; created_at: string }>; total: number }> => {
+    const response = await api.get('/bookmarks');
+    return response.data;
+  },
+
+  checkBookmark: async (postId: number): Promise<{ bookmarked: boolean }> => {
+    const response = await api.get(`/bookmarks/check/${postId}`);
     return response.data;
   },
 };

@@ -119,12 +119,16 @@ const Header = () => {
                             <p className="text-xs text-[#6B7280] truncate">@{user?.username}</p>
                           </div>
                           <div className="py-1">
-                            <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#3D405B] hover:bg-[#FAF7F2] transition-colors">
+                            <Link
+                              to={`/user/${user?.username}`}
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#3D405B] hover:bg-[#FAF7F2] transition-colors"
+                            >
                               <svg className="h-4 w-4 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
                               Profile
-                            </a>
+                            </Link>
                             <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#3D405B] hover:bg-[#FAF7F2] transition-colors">
                               <svg className="h-4 w-4 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />

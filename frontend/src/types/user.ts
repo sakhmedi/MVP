@@ -9,6 +9,17 @@ export type User = {
   updated_at: string;
 }
 
+export type UserProfile = {
+  id: number;
+  username: string;
+  full_name?: string;
+  bio?: string;
+  avatar?: string;
+  follower_count: number;
+  following_count: number;
+  created_at: string;
+}
+
 export type RegisterData = {
   email: string;
   password: string;

@@ -15,7 +15,7 @@ func main() {
 	config.ConnectDatabase()
 
 	// Auto-migrate database models
-	err := config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.RefreshToken{}, &models.BlacklistedToken{})
+	err := config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.RefreshToken{}, &models.BlacklistedToken{}, &models.Like{}, &models.Follow{}, &models.Bookmark{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -63,7 +63,12 @@ func main() {
 
 		// Public post routes (read-only)
 		api.GET("/posts", handlers.GetPosts)
+		api.GET("/posts/staff-picks", handlers.GetStaffPicks)
 		api.GET("/posts/:slug", handlers.GetPost)
+
+		// Public user routes
+		api.GET("/users/:username", handlers.GetUserProfile)
+		api.GET("/users/:username/posts", handlers.GetUserPosts)
 
 		// Protected routes (require JWT authentication)
 		protected := api.Group("/")
@@ -76,6 +81,19 @@ func main() {
 			protected.PUT("/posts/:id", handlers.UpdatePost)
 			protected.DELETE("/posts/:id", handlers.DeletePost)
 			protected.GET("/posts/my", handlers.GetMyPosts)
+
+			// Bookmark routes
+			protected.POST("/bookmarks/:postId", handlers.AddBookmark)
+			protected.DELETE("/bookmarks/:postId", handlers.RemoveBookmark)
+			protected.GET("/bookmarks", handlers.GetBookmarks)
+			protected.GET("/bookmarks/check/:postId", handlers.CheckBookmark)
+
+			// Follow routes
+			protected.POST("/users/:username/follow", handlers.FollowUser)
+			protected.DELETE("/users/:username/follow", handlers.UnfollowUser)
+			protected.GET("/users/:username/following-check", handlers.CheckFollowing)
+			protected.GET("/feed/following", handlers.GetFollowingFeed)
+			protected.GET("/users/suggestions", handlers.GetSuggestedUsers)
 		}
 	}
 

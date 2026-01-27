@@ -191,4 +191,26 @@ export const bookmarkAPI = {
   },
 };
 
+export const likeAPI = {
+  addLike: async (postId: number): Promise<{ message: string; like_count: number }> => {
+    const response = await api.post(`/likes/${postId}`);
+    return response.data;
+  },
+
+  removeLike: async (postId: number): Promise<{ message: string; like_count: number }> => {
+    const response = await api.delete(`/likes/${postId}`);
+    return response.data;
+  },
+
+  checkLike: async (postId: number): Promise<{ liked: boolean; like_count: number }> => {
+    const response = await api.get(`/likes/check/${postId}`);
+    return response.data;
+  },
+
+  getLikeCount: async (postId: number): Promise<{ like_count: number }> => {
+    const response = await api.get(`/likes/count/${postId}`);
+    return response.data;
+  },
+};
+
 export default api;

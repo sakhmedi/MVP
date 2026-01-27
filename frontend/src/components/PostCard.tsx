@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Post } from '../types/post';
-import { bookmarkAPI } from '../services/api';
+import { bookmarkAPI, likeAPI } from '../services/api';
 
 interface PostCardProps {
   post: Post;
@@ -13,6 +13,7 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   const isLoggedIn = !!localStorage.getItem('access_token');
 
@@ -30,6 +31,28 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
     checkBookmarkStatus();
   }, [post.id, isLoggedIn]);
 
+  // Check like status and get like count on mount
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (!post.id) return;
+      try {
+        if (isLoggedIn) {
+          // If logged in, get both like status and count
+          const response = await likeAPI.checkLike(post.id);
+          setIsLiked(response.liked);
+          setLikeCount(response.like_count);
+        } else {
+          // If not logged in, just get the count
+          const response = await likeAPI.getLikeCount(post.id);
+          setLikeCount(response.like_count);
+        }
+      } catch (error) {
+        // Silently fail
+      }
+    };
+    checkLikeStatus();
+  }, [post.id, isLoggedIn]);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -43,11 +66,33 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
     return `${minutes || 1} min read`;
   };
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+
+    if (!isLoggedIn) {
+      // Could show a login prompt here
+      return;
+    }
+
+    if (isLikeLoading) return;
+
+    setIsLikeLoading(true);
+    try {
+      if (isLiked) {
+        const response = await likeAPI.removeLike(post.id);
+        setIsLiked(false);
+        setLikeCount(response.like_count);
+      } else {
+        const response = await likeAPI.addLike(post.id);
+        setIsLiked(true);
+        setLikeCount(response.like_count);
+      }
+    } catch (error) {
+      console.error('Failed to update like:', error);
+    } finally {
+      setIsLikeLoading(false);
+    }
   };
 
   const handleBookmark = async (e: React.MouseEvent) => {
@@ -293,11 +338,13 @@ const PostCard = ({ post, variant = 'default' }: PostCardProps) => {
               {/* Like button */}
               <button
                 onClick={handleLike}
+                disabled={isLikeLoading || !isLoggedIn}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all duration-300 ${
                   isLiked
                     ? 'bg-[#E07A5F]/10 text-[#E07A5F]'
                     : 'text-[#6B7280] hover:bg-[#FAF7F2] hover:text-[#3D405B]'
-                }`}
+                } ${isLikeLoading ? 'opacity-50 cursor-wait' : ''} ${!isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={!isLoggedIn ? 'Login to like' : isLiked ? 'Unlike' : 'Like'}
               >
                 <svg
                   className={`h-4 w-4 transition-transform duration-300 ${isLiked ? 'scale-110' : ''}`}

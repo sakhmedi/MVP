@@ -70,6 +70,9 @@ func main() {
 		api.GET("/users/:username", handlers.GetUserProfile)
 		api.GET("/users/:username/posts", handlers.GetUserPosts)
 
+		// Public like count route
+		api.GET("/likes/count/:postId", handlers.GetLikeCount)
+
 		// Protected routes (require JWT authentication)
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())
@@ -87,6 +90,11 @@ func main() {
 			protected.DELETE("/bookmarks/:postId", handlers.RemoveBookmark)
 			protected.GET("/bookmarks", handlers.GetBookmarks)
 			protected.GET("/bookmarks/check/:postId", handlers.CheckBookmark)
+
+			// Like routes
+			protected.POST("/likes/:postId", handlers.AddLike)
+			protected.DELETE("/likes/:postId", handlers.RemoveLike)
+			protected.GET("/likes/check/:postId", handlers.CheckLike)
 
 			// Follow routes
 			protected.POST("/users/:username/follow", handlers.FollowUser)

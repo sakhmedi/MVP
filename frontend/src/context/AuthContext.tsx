@@ -17,20 +17,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const accessToken = localStorage.getItem('access_token');
-    const storedUser = localStorage.getItem('user');
+    const validateAuth = async () => {
+      const accessToken = localStorage.getItem('access_token');
+      const storedUser = localStorage.getItem('user');
 
-    if (accessToken && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
+      if (!accessToken || !storedUser) {
+        // No tokens, clear any stale data
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        setLoading(false);
+        return;
       }
-    }
 
-    setLoading(false);
+      try {
+        // Verify token by fetching current user
+        const response = await authAPI.getCurrentUser();
+        setUser(response.user);
+        // Update stored user with fresh data
+        localStorage.setItem('user', JSON.stringify(response.user));
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        // Token is invalid, clear everything
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateAuth();
   }, []);
 
   const login = (accessToken: string, refreshToken: string, userData: User) => {

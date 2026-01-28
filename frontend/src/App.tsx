@@ -1,8 +1,35 @@
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import Hero from "./components/Hero"
+import { useAuth } from "./context/AuthContext"
 
 function App() {
+  const { isAuthenticated, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Redirect authenticated users to feed
+    if (!loading && isAuthenticated) {
+      navigate('/feed', { replace: true })
+    }
+  }, [isAuthenticated, loading, navigate])
+
+  // Show nothing while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2]">
+        <div className="animate-spin h-8 w-8 border-2 border-[#E07A5F] border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  // Only show Hero for unauthenticated users
+  if (isAuthenticated) {
+    return null
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

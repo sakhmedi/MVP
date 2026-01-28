@@ -74,7 +74,7 @@ func main() {
 		api.GET("/likes/count/:postId", handlers.GetLikeCount)
 
 		// Public comment routes
-		api.GET("/posts/:postId/comments", handlers.GetPostComments)
+		api.GET("/comments/post/:postId", handlers.GetPostComments)
 
 		// Public topic routes
 		api.GET("/topics", handlers.GetTopics)
@@ -111,7 +111,7 @@ func main() {
 			protected.GET("/users/suggestions", handlers.GetSuggestedUsers)
 
 			// Comment routes
-			protected.POST("/posts/:postId/comments", handlers.CreateComment)
+			protected.POST("/comments/post/:postId", handlers.CreateComment)
 			protected.PUT("/comments/:id", handlers.UpdateComment)
 			protected.DELETE("/comments/:id", handlers.DeleteComment)
 

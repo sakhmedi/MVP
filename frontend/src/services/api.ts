@@ -220,12 +220,12 @@ export const likeAPI = {
 
 export const commentAPI = {
   createComment: async (postId: number, content: string, parentId?: number): Promise<{ comment: any }> => {
-    const response = await api.post(`/posts/${postId}/comments`, { content, parent_id: parentId });
+    const response = await api.post(`/comments/post/${postId}`, { content, parent_id: parentId });
     return response.data;
   },
 
   getPostComments: async (postId: number): Promise<{ comments: any[]; total: number }> => {
-    const response = await api.get(`/posts/${postId}/comments`);
+    const response = await api.get(`/comments/post/${postId}`);
     return response.data;
   },
 

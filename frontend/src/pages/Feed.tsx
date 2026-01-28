@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
 import PostCard from '../components/PostCard';
 import { postAPI, userAPI, bookmarkAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -172,9 +171,7 @@ const Feed = () => {
   const regularPosts = featuredPost ? posts.filter(p => p.id !== featuredPost.id) : posts;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
-      <Header />
-
+    <>
       {/* Welcome banner for authenticated users */}
       {user && (
         <div className="bg-white border-b border-[#E8E2D9]">
@@ -538,7 +535,7 @@ const Feed = () => {
           </aside>
         </div>
       </main>
-    </div>
+    </>
   );
 };
 

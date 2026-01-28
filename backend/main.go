@@ -15,7 +15,7 @@ func main() {
 	config.ConnectDatabase()
 
 	// Auto-migrate database models
-	err := config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.RefreshToken{}, &models.BlacklistedToken{}, &models.Like{}, &models.Follow{}, &models.Bookmark{})
+	err := config.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.RefreshToken{}, &models.BlacklistedToken{}, &models.Like{}, &models.Follow{}, &models.Bookmark{}, &models.Comment{}, &models.Topic{}, &models.TopicFollow{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -73,6 +73,13 @@ func main() {
 		// Public like count route
 		api.GET("/likes/count/:postId", handlers.GetLikeCount)
 
+		// Public comment routes
+		api.GET("/posts/:postId/comments", handlers.GetPostComments)
+
+		// Public topic routes
+		api.GET("/topics", handlers.GetTopics)
+		api.GET("/topics/:slug", handlers.GetTopic)
+
 		// Protected routes (require JWT authentication)
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())
@@ -102,6 +109,32 @@ func main() {
 			protected.GET("/users/:username/following-check", handlers.CheckFollowing)
 			protected.GET("/feed/following", handlers.GetFollowingFeed)
 			protected.GET("/users/suggestions", handlers.GetSuggestedUsers)
+
+			// Comment routes
+			protected.POST("/posts/:postId/comments", handlers.CreateComment)
+			protected.PUT("/comments/:id", handlers.UpdateComment)
+			protected.DELETE("/comments/:id", handlers.DeleteComment)
+
+			// Topic follow routes
+			protected.POST("/topics", handlers.CreateTopic)
+			protected.POST("/topics/:slug/follow", handlers.FollowTopic)
+			protected.DELETE("/topics/:slug/follow", handlers.UnfollowTopic)
+			protected.GET("/topics/:slug/follow-check", handlers.CheckTopicFollow)
+
+			// Library routes
+			protected.GET("/user/liked", handlers.GetLikedPosts)
+			protected.GET("/user/comments", handlers.GetUserComments)
+			protected.GET("/user/responses", handlers.GetUserResponses)
+
+			// Stories routes
+			protected.GET("/posts/drafts", handlers.GetDrafts)
+			protected.GET("/posts/scheduled", handlers.GetScheduled)
+			protected.GET("/posts/published", handlers.GetPublishedPosts)
+			protected.GET("/posts/unlisted", handlers.GetUnlisted)
+
+			// Following routes
+			protected.GET("/user/following/writers", handlers.GetFollowingWriters)
+			protected.GET("/user/topics", handlers.GetUserTopics)
 		}
 	}
 

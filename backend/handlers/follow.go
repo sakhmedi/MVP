@@ -213,3 +213,54 @@ func GetSuggestedUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"users": suggestions})
 }
+
+// GetFollowingWriters returns users that the authenticated user follows
+func GetFollowingWriters(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get IDs of users being followed
+	var followingIDs []uint
+	config.DB.Model(&models.Follow{}).Where("follower_id = ?", userID).Pluck("following_id", &followingIDs)
+
+	if len(followingIDs) == 0 {
+		c.JSON(http.StatusOK, gin.H{"users": []models.User{}, "total": 0})
+		return
+	}
+
+	var users []models.User
+	if err := config.DB.Where("id IN ?", followingIDs).Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	// Build response with follower counts
+	type UserWithStats struct {
+		ID            uint   `json:"id"`
+		Username      string `json:"username"`
+		FullName      string `json:"full_name"`
+		Bio           string `json:"bio"`
+		Avatar        string `json:"avatar"`
+		FollowerCount int64  `json:"follower_count"`
+	}
+
+	var result []UserWithStats
+	for _, u := range users {
+		var followerCount int64
+		config.DB.Model(&models.Follow{}).Where("following_id = ?", u.ID).Count(&followerCount)
+
+		result = append(result, UserWithStats{
+			ID:            u.ID,
+			Username:      u.Username,
+			FullName:      u.FullName,
+			Bio:           u.Bio,
+			Avatar:        u.Avatar,
+			FollowerCount: followerCount,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": result, "total": len(result)})
+}

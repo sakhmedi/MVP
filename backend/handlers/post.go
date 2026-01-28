@@ -355,3 +355,83 @@ func stripHTML(html string) string {
 	reg := regexp.MustCompile("<[^>]*>")
 	return reg.ReplaceAllString(html, " ")
 }
+
+// GetDrafts returns user's unpublished drafts
+func GetDrafts(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var posts []models.Post
+	if err := config.DB.Where("author_id = ? AND published = ? AND scheduled_at IS NULL", userID.(uint), false).
+		Preload("Author").
+		Order("updated_at DESC").
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch drafts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "total": len(posts)})
+}
+
+// GetScheduled returns user's scheduled posts
+func GetScheduled(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var posts []models.Post
+	if err := config.DB.Where("author_id = ? AND scheduled_at IS NOT NULL AND scheduled_at > ?", userID.(uint), time.Now()).
+		Preload("Author").
+		Order("scheduled_at ASC").
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch scheduled posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "total": len(posts)})
+}
+
+// GetPublishedPosts returns user's published posts (not unlisted)
+func GetPublishedPosts(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var posts []models.Post
+	if err := config.DB.Where("author_id = ? AND published = ? AND unlisted = ?", userID.(uint), true, false).
+		Preload("Author").
+		Order("published_at DESC").
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch published posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "total": len(posts)})
+}
+
+// GetUnlisted returns user's unlisted posts
+func GetUnlisted(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var posts []models.Post
+	if err := config.DB.Where("author_id = ? AND unlisted = ?", userID.(uint), true).
+		Preload("Author").
+		Order("updated_at DESC").
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch unlisted posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "total": len(posts)})
+}

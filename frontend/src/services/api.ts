@@ -211,6 +211,104 @@ export const likeAPI = {
     const response = await api.get(`/likes/count/${postId}`);
     return response.data;
   },
+
+  getLikedPosts: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/user/liked');
+    return response.data;
+  },
+};
+
+export const commentAPI = {
+  createComment: async (postId: number, content: string, parentId?: number): Promise<{ comment: any }> => {
+    const response = await api.post(`/posts/${postId}/comments`, { content, parent_id: parentId });
+    return response.data;
+  },
+
+  getPostComments: async (postId: number): Promise<{ comments: any[]; total: number }> => {
+    const response = await api.get(`/posts/${postId}/comments`);
+    return response.data;
+  },
+
+  updateComment: async (id: number, content: string): Promise<{ comment: any }> => {
+    const response = await api.put(`/comments/${id}`, { content });
+    return response.data;
+  },
+
+  deleteComment: async (id: number): Promise<{ message: string }> => {
+    const response = await api.delete(`/comments/${id}`);
+    return response.data;
+  },
+
+  getUserComments: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/user/comments');
+    return response.data;
+  },
+
+  getUserResponses: async (): Promise<{ comments: any[]; total: number }> => {
+    const response = await api.get('/user/responses');
+    return response.data;
+  },
+};
+
+export const topicAPI = {
+  getTopics: async (): Promise<{ topics: any[] }> => {
+    const response = await api.get('/topics');
+    return response.data;
+  },
+
+  getTopic: async (slug: string): Promise<{ topic: any; follower_count: number }> => {
+    const response = await api.get(`/topics/${slug}`);
+    return response.data;
+  },
+
+  followTopic: async (slug: string): Promise<{ message: string }> => {
+    const response = await api.post(`/topics/${slug}/follow`);
+    return response.data;
+  },
+
+  unfollowTopic: async (slug: string): Promise<{ message: string }> => {
+    const response = await api.delete(`/topics/${slug}/follow`);
+    return response.data;
+  },
+
+  checkTopicFollow: async (slug: string): Promise<{ following: boolean }> => {
+    const response = await api.get(`/topics/${slug}/follow-check`);
+    return response.data;
+  },
+
+  getUserTopics: async (): Promise<{ topics: any[]; total: number }> => {
+    const response = await api.get('/user/topics');
+    return response.data;
+  },
+};
+
+export const storiesAPI = {
+  getDrafts: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/posts/drafts');
+    return response.data;
+  },
+
+  getScheduled: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/posts/scheduled');
+    return response.data;
+  },
+
+  getPublished: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/posts/published');
+    return response.data;
+  },
+
+  getUnlisted: async (): Promise<{ posts: Post[]; total: number }> => {
+    const response = await api.get('/posts/unlisted');
+    return response.data;
+  },
+};
+
+export const followingAPI = {
+  getFollowingWriters: async (): Promise<{ users: any[]; total: number }> => {
+    const response = await api.get('/user/following/writers');
+    return response.data;
+  },
 };
 
 export default api;

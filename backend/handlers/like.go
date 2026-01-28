@@ -137,3 +137,32 @@ func GetLikeCount(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"like_count": likeCount})
 }
+
+// GetLikedPosts returns posts liked by the authenticated user
+func GetLikedPosts(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get post IDs that user has liked
+	var postIDs []uint
+	config.DB.Model(&models.Like{}).Where("user_id = ?", userID).Pluck("post_id", &postIDs)
+
+	if len(postIDs) == 0 {
+		c.JSON(http.StatusOK, gin.H{"posts": []models.Post{}, "total": 0})
+		return
+	}
+
+	var posts []models.Post
+	if err := config.DB.Where("id IN ?", postIDs).
+		Preload("Author").
+		Order("created_at DESC").
+		Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts, "total": len(posts)})
+}

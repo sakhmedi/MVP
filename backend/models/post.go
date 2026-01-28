@@ -22,5 +22,7 @@ type Post struct {
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	PublishedAt *time.Time     `json:"published_at"`
+	ScheduledAt *time.Time     `json:"scheduled_at"`                       // For scheduled posts
+	Unlisted    bool           `gorm:"default:false" json:"unlisted"`      // Hidden from feeds
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }

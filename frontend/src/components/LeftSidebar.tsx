@@ -1,69 +1,22 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
-  to?: string;
-  subItems?: { label: string; to: string }[];
+  to: string;
   isActive?: boolean;
 }
 
-const SidebarItem = ({ icon, label, to, subItems, isActive }: SidebarItemProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const location = useLocation();
-
-  const hasSubItems = subItems && subItems.length > 0;
-  const isSubItemActive = subItems?.some(item => location.pathname + location.search === item.to);
-
+const SidebarItem = ({ icon, label, to, isActive }: SidebarItemProps) => {
   const itemClasses = `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-    isActive || isSubItemActive
+    isActive
       ? 'bg-[#E07A5F]/10 text-[#E07A5F]'
       : 'text-[#3D405B] hover:bg-[#FAF7F2]'
   }`;
 
-  if (hasSubItems) {
-    return (
-      <div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className={`w-full ${itemClasses}`}
-        >
-          {icon}
-          <span className="flex-1 text-left">{label}</span>
-          <svg
-            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {isExpanded && (
-          <div className="ml-7 mt-1 space-y-1">
-            {subItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`block px-4 py-2 rounded-lg text-sm transition-all ${
-                  location.pathname + location.search === item.to
-                    ? 'text-[#E07A5F] bg-[#E07A5F]/5'
-                    : 'text-[#6B7280] hover:text-[#3D405B] hover:bg-[#FAF7F2]'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <Link to={to || '#'} className={itemClasses}>
+    <Link to={to} className={itemClasses}>
       {icon}
       <span>{label}</span>
     </Link>
@@ -78,26 +31,6 @@ interface LeftSidebarProps {
 const LeftSidebar = ({ isOpen, onClose }: LeftSidebarProps) => {
   const { user } = useAuth();
   const location = useLocation();
-
-  const librarySubItems = [
-    { label: 'Saved', to: '/library?tab=saved' },
-    { label: 'Liked', to: '/library?tab=liked' },
-    { label: 'Commented', to: '/library?tab=commented' },
-    { label: 'Responses', to: '/library?tab=responses' },
-  ];
-
-  const storiesSubItems = [
-    { label: 'Drafts', to: '/stories?tab=drafts' },
-    { label: 'Scheduled', to: '/stories?tab=scheduled' },
-    { label: 'Published', to: '/stories?tab=published' },
-    { label: 'Unlisted', to: '/stories?tab=unlisted' },
-    { label: 'Submissions', to: '/stories?tab=submissions' },
-  ];
-
-  const followingSubItems = [
-    { label: 'Writers', to: '/following?tab=writers' },
-    { label: 'Topics', to: '/following?tab=topics' },
-  ];
 
   return (
     <>
@@ -137,7 +70,8 @@ const LeftSidebar = ({ isOpen, onClose }: LeftSidebarProps) => {
                 </svg>
               }
               label="Library"
-              subItems={librarySubItems}
+              to="/library?tab=saved"
+              isActive={location.pathname === '/library'}
             />
 
             {/* Profile */}
@@ -160,7 +94,8 @@ const LeftSidebar = ({ isOpen, onClose }: LeftSidebarProps) => {
                 </svg>
               }
               label="Stories"
-              subItems={storiesSubItems}
+              to="/stories?tab=drafts"
+              isActive={location.pathname === '/stories'}
             />
 
             {/* Stats */}
@@ -183,7 +118,8 @@ const LeftSidebar = ({ isOpen, onClose }: LeftSidebarProps) => {
                 </svg>
               }
               label="Following"
-              subItems={followingSubItems}
+              to="/following?tab=writers"
+              isActive={location.pathname === '/following'}
             />
           </nav>
 
